@@ -1,0 +1,6 @@
+com/sample/model/BankRequest.class
+com/sample/Initializer.class
+com/sample/WebConfig.class
+org/hibernate/dialect/SQLiteDialect.class
+com/sample/ServiceController.class
+org/hibernate/dialect/SQLiteDialect$1.class
