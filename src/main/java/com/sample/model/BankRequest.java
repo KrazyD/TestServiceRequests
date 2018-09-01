@@ -1,11 +1,13 @@
 package com.sample.model;
 
 import com.sample.enums.RequestStatuses;
+
+import java.io.Serializable;
 import java.util.Date;
 
-public class BankRequest {
+public class BankRequest implements Serializable {
 
-    private int id;
+    private Integer id;
     private Integer numberOfRequest;
     private String client;
     private String nameOfService;
@@ -82,11 +84,11 @@ public class BankRequest {
         this.comment = comment;
     }
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 

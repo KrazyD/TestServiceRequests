@@ -7,7 +7,7 @@ public class LoggerWriter {
 
     private final static Logger logger = Logger.getLogger(LoggerWriter.class);
 
-    public void createMessage(LoggerTypes type, String parameter) {
+    public static void createMessage(LoggerTypes type, String parameter) {
         switch (type) {
             case INFO:
                 logger.info("WARNING: " + parameter);

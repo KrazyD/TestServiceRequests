@@ -1,16 +1,15 @@
 package com.sample;
 
-import com.sample.enums.RequestStatuses;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sample.enums.LoggerTypes;
 import com.sample.model.BankRequest;
 import org.apache.activemq.command.ActiveMQTextMessage;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.*;
 
 import javax.jms.JMSException;
 import javax.jms.Message;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -18,69 +17,112 @@ import java.util.List;
 @RequestMapping("/bankRequest")
 public class ServiceController {
 
-    @RequestMapping(method = RequestMethod.PUT)
-    public String createBankRequest(@RequestBody BankRequest request) throws InterruptedException, JMSException {
+    @RequestMapping(method = RequestMethod.POST,
+            consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public @ResponseBody String createBankRequest(@RequestBody String request)
+            throws JMSException, InterruptedException, JsonProcessingException {
+
+        LoggerWriter.createMessage(LoggerTypes.INFO, "Creating bank request");
 
         Message message = new ActiveMQTextMessage();
-        message.setObjectProperty("bankRequest", request);
+        message.setStringProperty("bankRequest", request);
         message.setStringProperty("action", "create");
+
+        LoggerWriter.createMessage(LoggerTypes.INFO, "Sending a request to the banking system");
 
         Initializer.getBlockingQueue().put(message);
         Message receivedMessage = Initializer.receiveMessage();
 
-        if (receivedMessage.getStringProperty("status").equals("ok")) {
-            return receivedMessage.getObjectProperty("response").toString();
-        } else {
-            return receivedMessage.getStringProperty("errorMessage");
-        }
+        LoggerWriter.createMessage(LoggerTypes.INFO, "Receiving a response from the banking system");
+
+        return getJSONResponse("create", receivedMessage);
     }
 
-    @RequestMapping(method = RequestMethod.PATCH)
-    public String editBankRequest(@RequestBody BankRequest request) throws JMSException, InterruptedException {
+    @RequestMapping(method = RequestMethod.PATCH,
+            consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public @ResponseBody String editBankRequest(@RequestBody String request)
+            throws JMSException, InterruptedException, JsonProcessingException {
+
+        LoggerWriter.createMessage(LoggerTypes.INFO, "Editing the status of a bank request");
 
         Message message = new ActiveMQTextMessage();
         message.setObjectProperty("bankRequest", request);
         message.setStringProperty("action", "edit");
 
+        LoggerWriter.createMessage(LoggerTypes.INFO, "Sending a request to the banking system");
+
         Initializer.getBlockingQueue().put(message);
         Message receivedMessage = Initializer.receiveMessage();
 
-        if (receivedMessage.getStringProperty("status").equals("ok")) {
-            return receivedMessage.getObjectProperty("response").toString();
-        } else {
-            return receivedMessage.getStringProperty("errorMessage");
-        }
+        LoggerWriter.createMessage(LoggerTypes.INFO, "Receiving a response from the banking system");
+
+        return getJSONResponse("edit", receivedMessage);
     }
 
-    @RequestMapping(method = RequestMethod.DELETE)
-    public String withdrawnBankRequest(@RequestBody BankRequest request) throws JMSException, InterruptedException {
+    @RequestMapping(method = RequestMethod.DELETE,
+            consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public @ResponseBody String withdrawnBankRequest(@RequestBody BankRequest request)
+            throws JMSException, InterruptedException, JsonProcessingException {
+
+        LoggerWriter.createMessage(LoggerTypes.INFO, "Withdrawal of a bank request");
+
         Message message = new ActiveMQTextMessage();
         message.setObjectProperty("bankRequest", request);
         message.setStringProperty("action", "withdrawn");
 
+        LoggerWriter.createMessage(LoggerTypes.INFO, "Sending a request to the banking system");
+
         Initializer.getBlockingQueue().put(message);
         Message receivedMessage = Initializer.receiveMessage();
 
-        if (receivedMessage.getStringProperty("status").equals("ok")) {
-            return receivedMessage.getObjectProperty("response").toString();
-        } else {
-            return receivedMessage.getStringProperty("errorMessage");
-        }
+        LoggerWriter.createMessage(LoggerTypes.INFO, "Receiving a response from the banking system");
+
+        return getJSONResponse("withdrawn", receivedMessage);
     }
 
-    @RequestMapping(value = "/filter", method = RequestMethod.POST)
-    public String filterBankRequest(@RequestBody HashMap<String, String> params) throws JMSException, InterruptedException {
+    @RequestMapping(value = "/filter",method = RequestMethod.POST,
+            consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public @ResponseBody String filterBankRequest(@RequestBody HashMap<String, String> params)
+            throws JMSException, InterruptedException, JsonProcessingException {
+
+        LoggerWriter.createMessage(LoggerTypes.INFO, "Receiving a filtered list of bank applications");
+
         Message message = new ActiveMQTextMessage();
         message.setObjectProperty("params", params);
         message.setStringProperty("action", "filter");
 
+        LoggerWriter.createMessage(LoggerTypes.INFO, "Sending a request to the banking system");
         Initializer.getBlockingQueue().put(message);
         Message receivedMessage = Initializer.receiveMessage();
 
-        if (receivedMessage.getStringProperty("status").equals("ok")) {
-            return receivedMessage.getObjectProperty("filteredRequests").toString();
+        LoggerWriter.createMessage(LoggerTypes.INFO, "Receiving a response from the banking system");
+
+        return getJSONResponse("filter", receivedMessage);
+    }
+
+    private String getJSONResponse(String type, Message message) throws JMSException, JsonProcessingException {
+
+        if (message == null) {
+            return "{ \"Error\": \"Failure to receive a response from the banking system.\" }";
+        }
+
+        if (message.getStringProperty("status").equals("ok")) {
+
+            if (type.equals("filter")) {
+                List<BankRequest> filteredRequests = (List<BankRequest>) message.getObjectProperty("response");
+                String filteredRequestsJSON = new ObjectMapper().writeValueAsString(filteredRequests);
+
+                return "{ \"Response\": \"" + filteredRequestsJSON + "\" }";
+            }
+            return message.getStringProperty("response");
+
         } else {
-            return receivedMessage.getStringProperty("errorMessage");
+            String errorMessage = message.getStringProperty("errorMessage");
+            return "{ \"Error\": \"" + errorMessage + "\" }";
         }
     }
 }

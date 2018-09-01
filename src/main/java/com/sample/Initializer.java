@@ -4,6 +4,7 @@ import org.apache.activemq.ActiveMQConnectionFactory;
 import org.springframework.web.WebApplicationInitializer;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
+import org.springframework.web.filter.CharacterEncodingFilter;
 import org.springframework.web.servlet.DispatcherServlet;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
@@ -24,6 +25,12 @@ public class Initializer implements WebApplicationInitializer {
 
     @Override
     public void onStartup(ServletContext servletContext) {
+
+        CharacterEncodingFilter filter = new CharacterEncodingFilter();
+        filter.setEncoding("utf-8");
+        filter.setForceEncoding(true);
+        servletContext.addFilter("/", filter);
+
         AnnotationConfigWebApplicationContext ctx = new AnnotationConfigWebApplicationContext();
         ctx.register(WebConfig.class);
         servletContext.addListener(new ContextLoaderListener(ctx));
@@ -44,7 +51,6 @@ public class Initializer implements WebApplicationInitializer {
         }
 
         Thread thread = new Thread(sender);
-        thread.setDaemon(true);
         thread.start();
     }
 
@@ -56,7 +62,6 @@ public class Initializer implements WebApplicationInitializer {
         MessageConsumer consumer = session.createConsumer(sessionQueue);
         connection.start();
 
-        return consumer.receive(1000);
+        return consumer.receive(5000);
     }
-
 }
