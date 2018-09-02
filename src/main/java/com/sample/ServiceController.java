@@ -4,13 +4,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sample.enums.LoggerTypes;
 import com.sample.model.BankRequest;
+import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.command.ActiveMQTextMessage;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
-import javax.jms.JMSException;
-import javax.jms.Message;
-import java.util.HashMap;
+import javax.jms.*;
 import java.util.List;
 
 @RestController
@@ -32,7 +31,7 @@ public class ServiceController {
         LoggerWriter.createMessage(LoggerTypes.INFO, "Sending a request to the banking system");
 
         Initializer.getBlockingQueue().put(message);
-        Message receivedMessage = Initializer.receiveMessage();
+        Message receivedMessage = receiveMessage();
 
         LoggerWriter.createMessage(LoggerTypes.INFO, "Receiving a response from the banking system");
 
@@ -54,7 +53,7 @@ public class ServiceController {
         LoggerWriter.createMessage(LoggerTypes.INFO, "Sending a request to the banking system");
 
         Initializer.getBlockingQueue().put(message);
-        Message receivedMessage = Initializer.receiveMessage();
+        Message receivedMessage = receiveMessage();
 
         LoggerWriter.createMessage(LoggerTypes.INFO, "Receiving a response from the banking system");
 
@@ -64,7 +63,7 @@ public class ServiceController {
     @RequestMapping(method = RequestMethod.DELETE,
             consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public @ResponseBody String withdrawnBankRequest(@RequestBody BankRequest request)
+    public @ResponseBody String withdrawnBankRequest(@RequestBody String request)
             throws JMSException, InterruptedException, JsonProcessingException {
 
         LoggerWriter.createMessage(LoggerTypes.INFO, "Withdrawal of a bank request");
@@ -76,7 +75,7 @@ public class ServiceController {
         LoggerWriter.createMessage(LoggerTypes.INFO, "Sending a request to the banking system");
 
         Initializer.getBlockingQueue().put(message);
-        Message receivedMessage = Initializer.receiveMessage();
+        Message receivedMessage = receiveMessage();
 
         LoggerWriter.createMessage(LoggerTypes.INFO, "Receiving a response from the banking system");
 
@@ -86,25 +85,25 @@ public class ServiceController {
     @RequestMapping(value = "/filter",method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public @ResponseBody String filterBankRequest(@RequestBody HashMap<String, String> params)
+    public @ResponseBody String filterBankRequest(@RequestBody String params)
             throws JMSException, InterruptedException, JsonProcessingException {
 
         LoggerWriter.createMessage(LoggerTypes.INFO, "Receiving a filtered list of bank applications");
 
         Message message = new ActiveMQTextMessage();
-        message.setObjectProperty("params", params);
+        message.setStringProperty("params", params);
         message.setStringProperty("action", "filter");
 
         LoggerWriter.createMessage(LoggerTypes.INFO, "Sending a request to the banking system");
         Initializer.getBlockingQueue().put(message);
-        Message receivedMessage = Initializer.receiveMessage();
+        Message receivedMessage = receiveMessage();
 
         LoggerWriter.createMessage(LoggerTypes.INFO, "Receiving a response from the banking system");
 
         return getJSONResponse("filter", receivedMessage);
     }
 
-    private String getJSONResponse(String type, Message message) throws JMSException, JsonProcessingException {
+    public String getJSONResponse(String type, Message message) throws JMSException, JsonProcessingException {
 
         if (message == null) {
             return "{ \"Error\": \"Failure to receive a response from the banking system.\" }";
@@ -118,11 +117,22 @@ public class ServiceController {
 
                 return "{ \"Response\": \"" + filteredRequestsJSON + "\" }";
             }
-            return message.getStringProperty("response");
+            return "{ \"Response\": \"" + message.getStringProperty("response") + "\" }";
 
         } else {
             String errorMessage = message.getStringProperty("errorMessage");
             return "{ \"Error\": \"" + errorMessage + "\" }";
         }
+    }
+
+    public Message receiveMessage() throws JMSException {
+        ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory("tcp://localhost:61616");
+        QueueConnection connection = connectionFactory.createQueueConnection();
+        QueueSession session = connection.createQueueSession(false, Session.AUTO_ACKNOWLEDGE);
+        Queue sessionQueue = session.createQueue("responseQueue");
+        MessageConsumer consumer = session.createConsumer(sessionQueue);
+        connection.start();
+
+        return consumer.receive(5000);
     }
 }

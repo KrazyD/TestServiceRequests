@@ -1,6 +1,5 @@
 package com.sample;
 
-import org.apache.activemq.ActiveMQConnectionFactory;
 import org.springframework.web.WebApplicationInitializer;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
@@ -8,7 +7,7 @@ import org.springframework.web.filter.CharacterEncodingFilter;
 import org.springframework.web.servlet.DispatcherServlet;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
-import javax.jms.*;
+import javax.jms.Message;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletRegistration;
 import java.util.concurrent.BlockingQueue;
@@ -17,7 +16,7 @@ import java.util.concurrent.LinkedBlockingDeque;
 @EnableWebMvc
 public class Initializer implements WebApplicationInitializer {
     private static final String DISPATCHER_SERVLET_NAME = "dispatcher";
-    private static BlockingQueue<Message> blockingQueue;
+    private static BlockingQueue<Message> blockingQueue = new LinkedBlockingDeque<>();
 
     public static BlockingQueue<Message> getBlockingQueue() {
         return blockingQueue;
@@ -41,8 +40,6 @@ public class Initializer implements WebApplicationInitializer {
         servlet.addMapping("/");
         servlet.setLoadOnStartup(1);
 
-        blockingQueue = new LinkedBlockingDeque<>();
-
         MQSender sender = null;
         try {
             sender = new MQSender(blockingQueue);
@@ -52,16 +49,5 @@ public class Initializer implements WebApplicationInitializer {
 
         Thread thread = new Thread(sender);
         thread.start();
-    }
-
-    public static Message receiveMessage() throws JMSException {
-        ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory("tcp://localhost:61616");
-        QueueConnection connection = connectionFactory.createQueueConnection();
-        QueueSession session = connection.createQueueSession(false, Session.AUTO_ACKNOWLEDGE);
-        Queue sessionQueue = session.createQueue("responseQueue");
-        MessageConsumer consumer = session.createConsumer(sessionQueue);
-        connection.start();
-
-        return consumer.receive(5000);
     }
 }

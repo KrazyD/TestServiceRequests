@@ -18,7 +18,8 @@ public class BankRequest implements Serializable {
 
     public BankRequest() { }
 
-    public BankRequest(Integer numberOfRequest, String client, String nameOfService, Date created, Date lastChanged, RequestStatuses status, String comment) {
+    public BankRequest(Integer numberOfRequest, String client, String nameOfService,
+                       Date created, Date lastChanged, RequestStatuses status, String comment) {
         this.numberOfRequest = numberOfRequest;
         this.client = client;
         this.nameOfService = nameOfService;
