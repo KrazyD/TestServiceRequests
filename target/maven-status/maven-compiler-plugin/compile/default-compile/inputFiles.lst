@@ -1,8 +1,8 @@
-/home/user/IdeaProjects/TestServiceRequests/src/main/java/com/sample/LoggerWriter.java
-/home/user/IdeaProjects/TestServiceRequests/src/main/java/com/sample/MQSender.java
-/home/user/IdeaProjects/TestServiceRequests/src/main/java/com/sample/model/BankRequest.java
-/home/user/IdeaProjects/TestServiceRequests/src/main/java/com/sample/enums/LoggerTypes.java
-/home/user/IdeaProjects/TestServiceRequests/src/main/java/com/sample/Initializer.java
-/home/user/IdeaProjects/TestServiceRequests/src/main/java/com/sample/enums/RequestStatuses.java
-/home/user/IdeaProjects/TestServiceRequests/src/main/java/com/sample/WebConfig.java
-/home/user/IdeaProjects/TestServiceRequests/src/main/java/com/sample/ServiceController.java
+D:\Projects\TestServiceRequests\src\main\java\com\sample\enums\RequestStatuses.java
+D:\Projects\TestServiceRequests\src\main\java\com\sample\LoggerWriter.java
+D:\Projects\TestServiceRequests\src\main\java\com\sample\ServiceController.java
+D:\Projects\TestServiceRequests\src\main\java\com\sample\Initializer.java
+D:\Projects\TestServiceRequests\src\main\java\com\sample\MQSender.java
+D:\Projects\TestServiceRequests\src\main\java\com\sample\enums\LoggerTypes.java
+D:\Projects\TestServiceRequests\src\main\java\com\sample\WebConfig.java
+D:\Projects\TestServiceRequests\src\main\java\com\sample\model\BankRequest.java

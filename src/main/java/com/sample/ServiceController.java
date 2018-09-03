@@ -4,12 +4,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sample.enums.LoggerTypes;
 import com.sample.model.BankRequest;
-import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.command.ActiveMQTextMessage;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
-import javax.jms.*;
+import javax.jms.JMSException;
+import javax.jms.Message;
 import java.util.List;
 
 @RestController
@@ -31,7 +31,7 @@ public class ServiceController {
         LoggerWriter.createMessage(LoggerTypes.INFO, "Sending a request to the banking system");
 
         Initializer.getBlockingQueue().put(message);
-        Message receivedMessage = receiveMessage();
+        Message receivedMessage = Initializer.receiveMessage();
 
         LoggerWriter.createMessage(LoggerTypes.INFO, "Receiving a response from the banking system");
 
@@ -53,7 +53,7 @@ public class ServiceController {
         LoggerWriter.createMessage(LoggerTypes.INFO, "Sending a request to the banking system");
 
         Initializer.getBlockingQueue().put(message);
-        Message receivedMessage = receiveMessage();
+        Message receivedMessage = Initializer.receiveMessage();
 
         LoggerWriter.createMessage(LoggerTypes.INFO, "Receiving a response from the banking system");
 
@@ -75,7 +75,7 @@ public class ServiceController {
         LoggerWriter.createMessage(LoggerTypes.INFO, "Sending a request to the banking system");
 
         Initializer.getBlockingQueue().put(message);
-        Message receivedMessage = receiveMessage();
+        Message receivedMessage = Initializer.receiveMessage();
 
         LoggerWriter.createMessage(LoggerTypes.INFO, "Receiving a response from the banking system");
 
@@ -96,7 +96,7 @@ public class ServiceController {
 
         LoggerWriter.createMessage(LoggerTypes.INFO, "Sending a request to the banking system");
         Initializer.getBlockingQueue().put(message);
-        Message receivedMessage = receiveMessage();
+        Message receivedMessage = Initializer.receiveMessage();
 
         LoggerWriter.createMessage(LoggerTypes.INFO, "Receiving a response from the banking system");
 
@@ -123,16 +123,5 @@ public class ServiceController {
             String errorMessage = message.getStringProperty("errorMessage");
             return "{ \"Error\": \"" + errorMessage + "\" }";
         }
-    }
-
-    public Message receiveMessage() throws JMSException {
-        ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory("tcp://localhost:61616");
-        QueueConnection connection = connectionFactory.createQueueConnection();
-        QueueSession session = connection.createQueueSession(false, Session.AUTO_ACKNOWLEDGE);
-        Queue sessionQueue = session.createQueue("responseQueue");
-        MessageConsumer consumer = session.createConsumer(sessionQueue);
-        connection.start();
-
-        return consumer.receive(5000);
     }
 }
