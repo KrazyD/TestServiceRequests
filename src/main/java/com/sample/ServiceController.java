@@ -1,16 +1,12 @@
 package com.sample;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sample.enums.LoggerTypes;
-import com.sample.model.BankRequest;
 import org.apache.activemq.command.ActiveMQTextMessage;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import javax.jms.JMSException;
 import javax.jms.Message;
-import java.util.List;
 
 @RestController
 @RequestMapping("/bankRequest")
@@ -20,7 +16,7 @@ public class ServiceController {
             consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public @ResponseBody String createBankRequest(@RequestBody String request)
-            throws JMSException, InterruptedException, JsonProcessingException {
+            throws JMSException, InterruptedException {
 
         LoggerWriter.createMessage(LoggerTypes.INFO, "Creating bank request");
 
@@ -42,7 +38,7 @@ public class ServiceController {
             consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public @ResponseBody String editBankRequest(@RequestBody String request)
-            throws JMSException, InterruptedException, JsonProcessingException {
+            throws JMSException, InterruptedException {
 
         LoggerWriter.createMessage(LoggerTypes.INFO, "Editing the status of a bank request");
 
@@ -64,7 +60,7 @@ public class ServiceController {
             consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public @ResponseBody String withdrawnBankRequest(@RequestBody String request)
-            throws JMSException, InterruptedException, JsonProcessingException {
+            throws JMSException, InterruptedException {
 
         LoggerWriter.createMessage(LoggerTypes.INFO, "Withdrawal of a bank request");
 
@@ -86,7 +82,7 @@ public class ServiceController {
             consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public @ResponseBody String filterBankRequest(@RequestBody String params)
-            throws JMSException, InterruptedException, JsonProcessingException {
+            throws JMSException, InterruptedException {
 
         LoggerWriter.createMessage(LoggerTypes.INFO, "Receiving a filtered list of bank applications");
 
@@ -103,7 +99,7 @@ public class ServiceController {
         return getJSONResponse("filter", receivedMessage);
     }
 
-    public String getJSONResponse(String type, Message message) throws JMSException, JsonProcessingException {
+    public String getJSONResponse(String type, Message message) throws JMSException {
 
         if (message == null) {
             return "{ \"Error\": \"Failure to receive a response from the banking system.\" }";
@@ -112,8 +108,7 @@ public class ServiceController {
         if (message.getStringProperty("status").equals("ok")) {
 
             if (type.equals("filter")) {
-                List<BankRequest> filteredRequests = (List<BankRequest>) message.getObjectProperty("response");
-                String filteredRequestsJSON = new ObjectMapper().writeValueAsString(filteredRequests);
+                String filteredRequestsJSON = message.getStringProperty("response");
 
                 return "{ \"Response\": \"" + filteredRequestsJSON + "\" }";
             }

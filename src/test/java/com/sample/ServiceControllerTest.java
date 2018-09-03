@@ -17,41 +17,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class ServiceControllerTest {
 
-    private static BrokerService brokerService;
     private ServiceController controller;
     private BankRequest bankRequest;
     private String bankRequestJSON;
-    private static Connection connection;
-    private static MessageProducer publisher;
     private Message message;
-
-    @BeforeAll
-    static void configure() throws Exception {
-        brokerService = new BrokerService();
-        brokerService.setPersistent(false);
-        brokerService.setUseJmx(false);
-        brokerService.getManagementContext().setCreateConnector(false);
-        brokerService.setAdvisorySupport(false);
-        brokerService.setSchedulerSupport(false);
-        TransportConnector connector = brokerService.addConnector("tcp://localhost:61616");
-        brokerService.start();
-
-        String connectionUri = connector.getPublishableConnectString();
-        ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(connectionUri);
-        connection = factory.createConnection();
-        Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-        Queue queue = session.createQueue("responseQueue");
-        publisher = session.createProducer(queue);
-        connection.start();
-    }
-
-    @AfterAll
-    static void stop() throws Exception {
-        connection.stop();
-        connection = null;
-        brokerService.stop();
-        brokerService = null;
-    }
 
     @BeforeEach
     void setUp() throws JsonProcessingException {
@@ -86,15 +55,4 @@ class ServiceControllerTest {
         assertEquals("{ \"Error\": \"Failure to receive a response from the banking system.\" }", response);
     }
 
-    @Test
-    void receiveMessage() throws JMSException {
-        message.setStringProperty("status", "ok");
-        message.setStringProperty("response", bankRequestJSON);
-        publisher.send(message);
-
-        Message receivedMessage = controller.receiveMessage();
-
-        assertEquals("ok", receivedMessage.getStringProperty("status"));
-        assertEquals(bankRequestJSON, receivedMessage.getStringProperty("response"));
-    }
 }

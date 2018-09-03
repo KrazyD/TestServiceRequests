@@ -1,8 +1,7 @@
 package com.sample;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
-import org.apache.activemq.broker.BrokerService;
-import org.apache.activemq.broker.TransportConnector;
+
 import javax.jms.*;
 import java.util.concurrent.BlockingQueue;
 
@@ -11,7 +10,7 @@ public class MQSender implements Runnable {
     private BlockingQueue<Message> blockingQueue;
     private final String CONNECTION_URI = "tcp://localhost:61616";
 
-    MQSender(BlockingQueue<Message> queue) throws Exception {
+    MQSender(BlockingQueue<Message> queue) {
         this.blockingQueue = queue;
     }
 

@@ -2,7 +2,6 @@ package com.sample;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.broker.BrokerService;
-import org.apache.activemq.broker.TransportConnector;
 import org.springframework.web.WebApplicationInitializer;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
@@ -82,6 +81,6 @@ public class Initializer implements WebApplicationInitializer {
 
     public static Message receiveMessage() throws JMSException {
 
-        return consumer.receive(5000);
+        return consumer.receive(10000);
     }
 }
