@@ -2,6 +2,7 @@ package com.sample;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.broker.BrokerService;
+import org.apache.log4j.PropertyConfigurator;
 import org.springframework.web.WebApplicationInitializer;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
@@ -27,6 +28,8 @@ public class Initializer implements WebApplicationInitializer {
 
     @Override
     public void onStartup(ServletContext servletContext) {
+
+        PropertyConfigurator.configure("log4j.properties");
 
         CharacterEncodingFilter filter = new CharacterEncodingFilter();
         filter.setEncoding("utf-8");
